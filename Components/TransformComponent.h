@@ -20,6 +20,8 @@ public:
     void setPosition(sf::Vector2f pos);
 
     sf::Vector2f getPosition();
+    float getRotation();
+    float getThrust();
 
     void updatePosition();
 
@@ -28,11 +30,18 @@ public:
     void updatePositionY(float y);
     void updatePositionX(float x);
 
+    void updateRotation(float d);
+
+    void increaseSpeed(float speed);
+    void decreaseSpeed(float speed);
+
 private:
     sf::Vector2f m_position;
+    float m_rotation;
     //new v0.5
     sf::Vector2f m_speed;
 
+    float m_thrust;
 };
 
 #endif //CA2_TRANSFORMCOMPONENT_H

@@ -24,6 +24,8 @@ public:
     void Draw(sf::RenderWindow &window, float timeDelta);
     void setTexture(const sf::Texture& texture);
     void setPosition(sf::Vector2f position);
+    void setRotation(float position);
+    void updateMovement();
 
     sf::Sprite getSprite() {
         return m_sprite;
@@ -34,7 +36,6 @@ public:
 protected:
     sf::Sprite m_sprite;
     float m_timeDelta;
-
 };
 
 

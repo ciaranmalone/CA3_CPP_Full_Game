@@ -3,12 +3,12 @@
 //
 
 #include "Game.h"
-#include "Object.h"
-#include "Components/SpriteComponent.h"
-#include "TextureManager.h"
-#include "Components/TransformComponent.h"
-#include "Components/InputComponent.h"
-#include "Components/PhysicsComponent.h"
+#include "../Object.h"
+#include "../Components/SpriteComponent.h"
+#include "../TextureManager.h"
+#include "../Components/TransformComponent.h"
+#include "../Components/InputComponent.h"
+#include "../Components/PhysicsComponent.h"
 
 const sf::Time Game::TimePerFrame = sf::seconds(1.f/60.f);
 
@@ -19,18 +19,19 @@ const int SCREEN_HEIGHT = 480;
 
 Game::Game():mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "GAME!")
 {
+    // Init objects
     system("dir");
     auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
-
     player.AttachComponent<SpriteComponent>();
     player.AttachComponent<InputComponent>();
     player.GetComponent<SpriteComponent>()->setTexture(TextureManager::GetTexture(tempTextureID));
     player.GetComponent<SpriteComponent>()->setPosition(sf::Vector2f (10,5));
-    player.AttachComponent<TransformComponent>(sf::Vector2f (10, 10));
+    player.AttachComponent<TransformComponent>(sf::Vector2f (100, 100));
     player.GetComponent<TransformComponent>()->setPosition({40, 50});
-    player.AttachComponent<PhysicsComponent>();
-    player.GetComponent<PhysicsComponent>()->SetGravity(9.81);
+//    player.AttachComponent<PhysicsComponent>();
+//    player.GetComponent<PhysicsComponent>()->SetGravity(9.81);
     AddObjects(&player);
+
 }
 
 void Game::Run() {
@@ -83,20 +84,24 @@ void Game::update(sf::Time deltaTime)
         if(physics != nullptr)
             transform->updatePositionY(physics->GetGravity());
 
-        if(sprite != nullptr && transform != nullptr)
-            sprite->setPosition(transform->getPosition());
+        if(sprite != nullptr && transform != nullptr) {
+            sprite->setRotation(transform->getRotation());
 
-        if(transform->getPosition().x < 0)
-            transform->setPosition({0,transform->getPosition().y});
+            if (transform->getThrust() > 0)
+                sprite->updateMovement();
+        }
 
-        else if(transform->getPosition().y < 0)
-            transform->setPosition({transform->getPosition().x,0});
-
-        if(transform->getPosition().x > SCREEN_WIDTH)
-            transform->setPosition({SCREEN_WIDTH,transform->getPosition().y});
-
-        else if(transform->getPosition().x > SCREEN_HEIGHT)
-            transform->setPosition({transform->getPosition().x,SCREEN_HEIGHT});
+//        if(transform->getPosition().x < 0)
+//            transform->setPosition({0,transform->getPosition().y});
+//
+//        else if(transform->getPosition().y < 0)
+//            transform->setPosition({transform->getPosition().x,0});
+//
+//        if(transform->getPosition().x > SCREEN_WIDTH)
+//            transform->setPosition({SCREEN_WIDTH,transform->getPosition().y});
+//
+//        else if(transform->getPosition().x > SCREEN_HEIGHT)
+//            transform->setPosition({transform->getPosition().x,SCREEN_HEIGHT});
     }
 }
 
@@ -115,7 +120,12 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
     auto playerInput = player.GetComponent<InputComponent>();
 
     if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_LEFT))
-        playerTransform->updatePositionX(-1);
+        playerTransform->updateRotation(-5);
     else if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_RIGHT))
-        playerTransform->updatePositionX(1);
+        playerTransform->updateRotation(5);
+
+    if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_UP))
+        playerTransform->increaseSpeed(3);
+    else
+        playerTransform->decreaseSpeed(3);
 }

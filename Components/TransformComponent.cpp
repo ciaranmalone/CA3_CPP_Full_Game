@@ -39,6 +39,10 @@ sf::Vector2f TransformComponent::getPosition() {
     return m_position;
 }
 
+float TransformComponent::getRotation(){
+    return  m_rotation;
+}
+
 void TransformComponent::updatePosition() {
     m_position += m_speed;
 }
@@ -51,6 +55,26 @@ void TransformComponent::updatePositionY(float y) {
     m_position.y += y;
 }
 
-void TransformComponent::updatePositionX(float x) {
-    m_position.y += x;
+
+void TransformComponent::updateRotation(float d) {
+    m_rotation += d;
 }
+
+void TransformComponent::updatePositionX(float x) {
+    m_position.x += x;
+}
+
+void TransformComponent::decreaseSpeed(float speed) {
+    m_thrust = 0;
+}
+
+void TransformComponent::increaseSpeed(float speed) {
+    m_thrust = speed;
+
+}
+
+float TransformComponent::getThrust() {
+    return m_thrust;
+}
+
+

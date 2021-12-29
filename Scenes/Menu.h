@@ -1,32 +1,41 @@
 //
-// Created by crayon on 02/12/2021.
+// Created by crayon on 28/12/2021.
 //
 
-#ifndef CA2_GAME_H
-#define CA2_GAME_H
+#ifndef CA2_MENU_H
+#define CA2_MENU_H
+
 
 #include <SFML/Graphics.hpp>
-#include "Object.h"
-class Game {
+#include "../Object.h"
+
+class Menu {
+
 public:
-    Game();
+    Menu();
+    ~Menu() {
+        m_gameObjects.clear();
+    };
+
     void Run();
+
     void AddObjects(Object* obj)
     {
         m_gameObjects.push_back(obj);
     }
 
 private:
+    std::vector<Object * > m_gameObjects;//vector of pointers to objects/entities
+
     void processEvents();
     void update(sf::Time deltaTime);
     void render();
     void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
-    std::vector<Object * > m_gameObjects;//vector of pointers to objects/entities
 
     sf::RenderWindow mWindow;
-
     static const sf::Time TimePerFrame;
+
 };
 
 
-#endif //CA2_GAME_H
+#endif //CA2_MENU_H

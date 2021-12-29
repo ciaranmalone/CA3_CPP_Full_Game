@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <map>
-#include "Game.h"
+#include "Scenes/Game.h"
 
 class TextureManager
 {
