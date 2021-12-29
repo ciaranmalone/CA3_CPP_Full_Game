@@ -86,4 +86,12 @@ float TransformComponent::getThrust() {
     return m_thrust;
 }
 
+void TransformComponent::setMovingForward(bool set) {
+    movingForward = set;
+}
+
+bool TransformComponent::getMovingForward() {
+    return movingForward;
+}
+
 

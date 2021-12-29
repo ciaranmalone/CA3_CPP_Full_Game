@@ -23,6 +23,9 @@ public:
     float getRotation();
     float getThrust();
 
+    void  setMovingForward(bool set);
+    bool getMovingForward();
+
     void updatePosition();
 
     void updatePosition(sf::Vector2f speed);
@@ -39,6 +42,8 @@ public:
 private:
     sf::Vector2f m_position;
     float m_rotation;
+    bool movingForward;
+
     //new v0.5
     sf::Vector2f m_speed;
 
