@@ -34,6 +34,7 @@ public:
 
     void increaseSpeed(float speed);
     void decreaseSpeed(float speed);
+    void setSpeed(float speed);
 
 private:
     sf::Vector2f m_position;
@@ -41,6 +42,7 @@ private:
     //new v0.5
     sf::Vector2f m_speed;
 
+    float max_thrust = 5.0f;
     float m_thrust;
 };
 

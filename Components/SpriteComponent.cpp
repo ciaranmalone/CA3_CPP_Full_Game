@@ -58,8 +58,6 @@ void SpriteComponent::Draw(sf::RenderWindow window) {
     window.draw(m_sprite);
 }
 
-void SpriteComponent::updateMovement(){
-    float X = sin(m_sprite.getRotation());
-    float Y = -cos(m_sprite.getRotation());
-    m_sprite.move(sin(X*3.14159265/180), -cos(Y*3.14159265/180));
+void SpriteComponent::updateMovement(float thrust){
+    m_sprite.move(thrust * sin(m_sprite.getRotation()*3.14159265/180), thrust * -cos(m_sprite.getRotation()*3.14159265/180));
 }

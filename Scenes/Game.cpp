@@ -88,20 +88,20 @@ void Game::update(sf::Time deltaTime)
             sprite->setRotation(transform->getRotation());
 
             if (transform->getThrust() > 0)
-                sprite->updateMovement();
+                sprite->updateMovement(transform->getThrust());
         }
 
-//        if(transform->getPosition().x < 0)
-//            transform->setPosition({0,transform->getPosition().y});
-//
-//        else if(transform->getPosition().y < 0)
-//            transform->setPosition({transform->getPosition().x,0});
-//
-//        if(transform->getPosition().x > SCREEN_WIDTH)
-//            transform->setPosition({SCREEN_WIDTH,transform->getPosition().y});
-//
-//        else if(transform->getPosition().x > SCREEN_HEIGHT)
-//            transform->setPosition({transform->getPosition().x,SCREEN_HEIGHT});
+        if(sprite->getSprite().getPosition().x < 0)
+            sprite->setPosition({SCREEN_WIDTH,sprite->getSprite().getPosition().y});
+
+        else if(sprite->getSprite().getPosition().x > SCREEN_WIDTH)
+            sprite->setPosition({0,sprite->getSprite().getPosition().y});
+
+        if(sprite->getSprite().getPosition().y < 0)
+            sprite->setPosition({sprite->getSprite().getPosition().x,SCREEN_HEIGHT});
+
+        else if(sprite->getSprite().getPosition().y > SCREEN_HEIGHT)
+            sprite->setPosition({sprite->getSprite().getPosition().x,0});
     }
 }
 
@@ -125,7 +125,7 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
         playerTransform->updateRotation(5);
 
     if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_UP))
-        playerTransform->increaseSpeed(3);
+        playerTransform->increaseSpeed(.1f);
     else
-        playerTransform->decreaseSpeed(3);
+        playerTransform->decreaseSpeed(.1f);
 }

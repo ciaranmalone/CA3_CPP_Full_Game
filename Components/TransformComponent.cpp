@@ -65,12 +65,21 @@ void TransformComponent::updatePositionX(float x) {
 }
 
 void TransformComponent::decreaseSpeed(float speed) {
-    m_thrust = 0;
+    if (m_thrust > 0) {
+        m_thrust -= speed;
+    }
+    else {
+        m_thrust = 0;
+    }
 }
 
 void TransformComponent::increaseSpeed(float speed) {
-    m_thrust = speed;
-
+    if (m_thrust < max_thrust) {
+        m_thrust += speed;
+    }
+    else {
+        m_thrust = max_thrust;
+    }
 }
 
 float TransformComponent::getThrust() {
