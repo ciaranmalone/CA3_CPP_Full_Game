@@ -10,6 +10,7 @@
 class Game {
 public:
     Game();
+    void LoadData();
     void Run();
     void AddObjects(Object* obj)
     {
@@ -22,7 +23,6 @@ private:
     void render();
     void handlePlayerInput();
     std::vector<Object * > m_gameObjects;//vector of pointers to objects/entities
-
     sf::RenderWindow mWindow;
 
     static const sf::Time TimePerFrame;

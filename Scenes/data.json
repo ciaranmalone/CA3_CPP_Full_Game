@@ -1,0 +1,6 @@
+{
+  "screenWidth": 640,
+  "ScreenHeight": 320,
+  "playerSpeed": 0.2,
+  "maxSpeed": 5
+}

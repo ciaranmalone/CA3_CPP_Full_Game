@@ -10,5 +10,16 @@ find_package(SFML 2.5
 
 include(FetchContent)
 
+FetchContent_Declare(json
+        GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+        GIT_TAG v3.10.4)
+
+FetchContent_GetProperties(json)
+if(NOT json_POPULATED)
+    FetchContent_Populate(json)
+    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
 target_link_libraries(CA2 PRIVATE
-        sfml-system sfml-window sfml-graphics sfml-network sfml-audio)
+        sfml-system sfml-window sfml-graphics sfml-network sfml-audio
+        nlohmann_json::nlohmann_json)

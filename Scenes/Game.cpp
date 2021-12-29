@@ -9,16 +9,52 @@
 #include "../Components/TransformComponent.h"
 #include "../Components/InputComponent.h"
 #include "../Components/PhysicsComponent.h"
+#include "../Json/json.hpp"
+#include <fstream>
 
 const sf::Time Game::TimePerFrame = sf::seconds(1.f/60.f);
 
 Object player;
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+float SCREEN_WIDTH = 640;
+float SCREEN_HEIGHT = 480;
+using nlohmann::json;
+
+namespace data {
+    struct GameData {
+        int screenWidth;
+        int ScreenHeight;
+        float playerSpeed;
+        float maxSpeed;
+    };
+
+    void to_json(json& j, const GameData& g) {
+        j = json{ {"screenWidth", g.screenWidth},
+                  {"ScreenHeight", g.ScreenHeight},
+                  {"playerSpeed", g.playerSpeed},
+                  {"maxSpeed", g.maxSpeed}};
+    }
+
+    void from_json(const json& j, GameData& g) {
+        j.at("screenWidth").get_to(g.screenWidth);
+        j.at("ScreenHeight").get_to(g.ScreenHeight);
+        j.at("playerSpeed").get_to(g.playerSpeed);
+        j.at("maxSpeed").get_to(g.maxSpeed);
+    }
+}
 
 Game::Game():mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "GAME!")
 {
+    std::ifstream file ("data.json");
+    json j;
+    file >> j;
+    std::cout << j << std::endl;
+    auto gameData = j.get<data::GameData>();
+    SCREEN_WIDTH = gameData.screenWidth;
+    SCREEN_HEIGHT =gameData.ScreenHeight;
+    mWindow.
+    mWindow.setSize({40,40});
+//    mWindow.setSize({static_cast<unsigned int>(SCREEN_WIDTH),static_cast<unsigned int>(SCREEN_HEIGHT)});
     // Init objects
     system("dir");
     auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
@@ -30,7 +66,6 @@ Game::Game():mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "GAME!")
     player.GetComponent<TransformComponent>()->setPosition({40, 50});
 
     AddObjects(&player);
-
 }
 
 void Game::Run() {
@@ -80,26 +115,15 @@ void Game::update(sf::Time deltaTime)
             transform->updatePositionY(physics->GetGravity());
 
         if(sprite != nullptr && transform != nullptr) {
-            sprite->setRotation(transform->getRotation());
 
+            transform->setPosition(sprite->getSprite().getPosition());
+            sprite->setRotation(transform->getRotation());
             sprite->updateMovement(transform->getThrust());
 
             if (!transform->getMovingForward()){
                 transform->decreaseSpeed(.2f);
             }
         }
-
-//        if(transform->getPosition().x < 0)
-//            transform->setPosition({SCREEN_WIDTH,transform->getPosition().y});
-//
-//        else if(transform->getPosition().x > SCREEN_WIDTH)
-//            transform->setPosition({0,transform->getPosition().y});
-//
-//        else if(transform->getPosition().y < 0)
-//            transform->setPosition({transform->getPosition().x,SCREEN_HEIGHT});
-//
-//        else if(transform->getPosition().y > SCREEN_HEIGHT)
-//            transform->setPosition({transform->getPosition().x,0});
 
         if(sprite->getSprite().getPosition().x < 0)
             sprite->setPosition({SCREEN_WIDTH,sprite->getSprite().getPosition().y});
