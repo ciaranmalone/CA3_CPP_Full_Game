@@ -16,7 +16,6 @@ int TextureManager::AddTexture(std::string filePath)
         return it->second.first;
     }
 
-    // At this point the texture doesn't exists, so we'll create and add it.
     m_currentId++;
 
     std::unique_ptr<sf::Texture> texture = std::make_unique<sf::Texture>();

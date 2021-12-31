@@ -32,6 +32,8 @@ public:
     }
 
     void Draw(sf::RenderWindow window);
+    bool isPlayer = false;
+
 
 protected:
     sf::Sprite m_sprite;

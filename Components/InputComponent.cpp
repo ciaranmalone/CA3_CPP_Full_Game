@@ -13,14 +13,12 @@ bool InputComponent::IsKeyPressed(InputComponent::KEY keycode) {
         case KEY::KEY_SHIFT:
             if ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) ||
                 (sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))) {
-                std::cout << "shift pressed" << std::endl;
                 return true;
             }
             break;
         case KEY::KEY_LEFT:
             if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) ||
                 (sf::Joystick::getAxisPosition(0, sf::Joystick::X) < -40)) {
-                std::cout << "leftkey pressed" << std::endl;
                 return true;
             }
             break;
@@ -28,7 +26,6 @@ bool InputComponent::IsKeyPressed(InputComponent::KEY keycode) {
         case KEY::KEY_RIGHT:
             if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) || (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) ||
                 (sf::Joystick::getAxisPosition(0, sf::Joystick::X) > 40)) {
-                std::cout << "rightkey pressed" << std::endl;
                 return true;
             }
             break;

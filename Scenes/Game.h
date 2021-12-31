@@ -16,16 +16,23 @@ public:
     {
         m_gameObjects.push_back(obj);
     }
+    std::vector<Object * > m_gameObjects;//vector of pointers to objects/entities
+
 
 private:
     void processEvents();
     void update(sf::Time deltaTime);
     void render();
     void handlePlayerInput();
-    std::vector<Object * > m_gameObjects;//vector of pointers to objects/entities
     sf::RenderWindow mWindow;
 
     static const sf::Time TimePerFrame;
+
+    void InitPlayer();
+    Object InitEnemy();
+    void InitEnemies(int num);
+
+
 };
 
 
