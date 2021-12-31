@@ -9,7 +9,7 @@
 #include "../Object.h"
 class Game {
 public:
-    Game();
+    explicit Game(std::string levelJson);
     void LoadData();
     void Run();
     void AddObjects(Object* obj)

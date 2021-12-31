@@ -52,9 +52,9 @@ namespace data {
     }
 }
 
-Game::Game():mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "GAME!")
+Game::Game(std::string jsonLocation):mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "GAME!")
 {
-    std::ifstream file ("Assets/data.json");
+    std::ifstream file (jsonLocation);
     json j;
     file >> j;
     std::cout << j << std::endl;
@@ -82,10 +82,6 @@ void Game::InitPlayer() {
     AddObjects(&player);
 };
 
-void Game::InitEnemies(int num) {
-
-}
-
 Object Game::InitEnemy() {
     Object Enemy;
     auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
@@ -103,11 +99,11 @@ void Game::Run() {
 
     auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
 
-//    Object enemies [numberOfEnemies];
-//    for (int i = 0; i < numberOfEnemies; ++i) {
-//        enemies[i] = Game::InitEnemy();
-//        AddObjects(&enemies[i]);
-//    }
+    Object enemies [numberOfEnemies];
+    for (int i = 0; i < numberOfEnemies; ++i) {
+        enemies[i] = Game::InitEnemy();
+        AddObjects(&enemies[i]);
+    }
 
     Object boss;
     boss.AttachComponent<SpriteComponent>();
@@ -240,4 +236,8 @@ void Game::handlePlayerInput()
             playerColl->checkCollision(playerSprite, sprite);
         }
     }
+}
+
+void Game::LoadData() {
+
 }

@@ -3,7 +3,7 @@ project(CA2)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(CA2 main.cpp Scenes/Game.cpp Scenes/Game.h Object.h Components/Component.cpp Components/Component.h Components/SpriteComponent.cpp Components/SpriteComponent.h Components/TransformComponent.cpp Components/TransformComponent.h TextureManager.cpp TextureManager.h Components/InputComponent.cpp Components/InputComponent.h Components/PhysicsComponent.cpp Components/PhysicsComponent.h Scenes/Menu.cpp Scenes/Menu.h Components/AIMovementComponent.cpp Components/AIMovementComponent.h Components/CollisionComponent.cpp Components/CollisionComponent.h)
+add_executable(CA2 main.cpp Scenes/Game.cpp Scenes/Game.h Object.h Components/Component.cpp Components/Component.h Components/SpriteComponent.cpp Components/SpriteComponent.h Components/TransformComponent.cpp Components/TransformComponent.h TextureManager.cpp TextureManager.h Components/InputComponent.cpp Components/InputComponent.h Components/PhysicsComponent.cpp Components/PhysicsComponent.h Scenes/Menu.cpp Scenes/Menu.h Components/AIMovementComponent.cpp Components/AIMovementComponent.h Components/CollisionComponent.cpp Components/CollisionComponent.h Components/ButtonComponent.cpp Components/ButtonComponent.h)
 find_package(SFML 2.5
         COMPONENTS
         system window graphics network audio REQUIRED)

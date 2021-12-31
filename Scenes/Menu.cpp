@@ -4,13 +4,35 @@
 
 #include "Menu.h"
 #include "Game.h"
+#include "../TextureManager.h"
+#include "../Components/SpriteComponent.h"
+#include "../Components/ButtonComponent.h"
 
 
 const sf::Time Menu::TimePerFrame = sf::seconds(1.f/60.f);
 
+Object ButtonOne;
+Object ButtonTwo;
+Object ButtonThree;
+
+
 Menu::Menu(): mWindow(sf::VideoMode(320, 320), "Main Menu!")
 {
+    InitButton("buttonOne",&ButtonOne, 100, 100, "Assets/spr_skeleton_idle_down.png");
+    InitButton("buttonTwo",&ButtonTwo, 200, 100, "Assets/spr_skeleton_idle_down.png");
+    InitButton("buttonThree",&ButtonThree, 300, 100, "Assets/spr_skeleton_idle_down.png");
 
+}
+
+void Menu::InitButton(std::string name, Object * button, int xPos, int yPos, std::string textureLocation)
+{
+    auto tempTextureID = TextureManager::AddTexture(textureLocation);
+    button->AttachComponent<SpriteComponent>();
+    button->GetComponent<SpriteComponent>()->setTexture(TextureManager::GetTexture(tempTextureID));
+    button->GetComponent<SpriteComponent>()->setPosition(sf::Vector2f (xPos,yPos));
+    button->AttachComponent<ButtonComponent>();
+    button->GetComponent<ButtonComponent>()->setButtonName(name);
+    AddObjects(button);
 }
 
 void Menu::Run()
@@ -40,12 +62,6 @@ void Menu::processEvents()
     {
         switch (event.type)
         {
-            case sf::Event::KeyPressed:
-                handlePlayerInput(event.key.code, true);
-                break;
-            case sf::Event::KeyReleased:
-                handlePlayerInput(event.key.code, false);
-                break;
             case sf::Event::Closed:
                 mWindow.close();
                 break;
@@ -53,28 +69,42 @@ void Menu::processEvents()
                 break;
         }
 
+        if(sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+            handlePlayerInput(sf::Mouse::getPosition(), false);
+        }
     }
 }
 
 void Menu::update(sf::Time deltaTime)
 {
-    // TODO: Update your objects here
-    // Example: mWindow.draw(mPlayer);
+
 }
 
 
 void Menu::render()
 {
     mWindow.clear();
+    for (auto &object: m_gameObjects) {
+        mWindow.draw(object->GetComponent<SpriteComponent>()->getSprite());
+    }
     mWindow.display();
 }
 
-void Menu::handlePlayerInput(sf::Keyboard::Key key, bool isPressed)
+void Menu::handlePlayerInput(sf::Vector2<int> key, bool isPressed)
 {
-     if (key == sf::Keyboard::W)
-     {
-         Game game;
-         game.Run();
-         mWindow.close();
-     }
+    for (auto &object: m_gameObjects) {
+        std::shared_ptr<SpriteComponent> sprite = object->GetComponent<SpriteComponent>();
+        auto button = object->GetComponent<ButtonComponent>();
+
+        if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonOne")
+        {
+
+            Game game("Assets/data.json");
+            game.Run();
+
+            m_gameObjects.clear();
+
+            mWindow.close();
+        }
+    }
 }

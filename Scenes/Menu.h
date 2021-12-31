@@ -30,11 +30,12 @@ private:
     void processEvents();
     void update(sf::Time deltaTime);
     void render();
-    void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
+    void handlePlayerInput(sf::Vector2<int> key, bool isPressed);
 
     sf::RenderWindow mWindow;
     static const sf::Time TimePerFrame;
 
+    void InitButton(std::string name, Object * button, int xPos, int yPos, std::string texture);
 };
 
 
