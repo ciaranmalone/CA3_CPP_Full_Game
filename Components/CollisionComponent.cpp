@@ -19,7 +19,6 @@ void CollisionComponent::checkCollision(std::shared_ptr<SpriteComponent> playerT
     float dx = (playerPos.x + playerRadius) - (otherPos.x + otherRadius);
     float dy = (playerPos.y + playerRadius) - (otherPos.y + otherRadius);
     float distance = std::sqrt((dx*dx) + (dy*dy));
-    std::cout << distance << " <= " << otherRadius + playerRadius << std::endl;
 
     if(distance <= (playerRadius + otherRadius)) {
         std::cout << "Collision Detected" << std::endl;

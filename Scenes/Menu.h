@@ -35,6 +35,7 @@ private:
     sf::RenderWindow mWindow;
     static const sf::Time TimePerFrame;
 
+    void RunGame(std::string jsonName);
     void InitButton(std::string name, Object * button, int xPos, int yPos, std::string texture);
 };
 

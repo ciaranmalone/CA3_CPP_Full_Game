@@ -3,8 +3,6 @@
 //
 
 #ifndef CA2_INPUTCOMPONENT_H
-
-
 #include "Component.h"
 
 class InputComponent: public Component{

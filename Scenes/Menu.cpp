@@ -7,6 +7,8 @@
 #include "../TextureManager.h"
 #include "../Components/SpriteComponent.h"
 #include "../Components/ButtonComponent.h"
+#include "../Components/TextComponent.h"
+#include "../Components/TransformComponent.h"
 
 
 const sf::Time Menu::TimePerFrame = sf::seconds(1.f/60.f);
@@ -14,7 +16,7 @@ const sf::Time Menu::TimePerFrame = sf::seconds(1.f/60.f);
 Object ButtonOne;
 Object ButtonTwo;
 Object ButtonThree;
-
+Object title;
 
 Menu::Menu(): mWindow(sf::VideoMode(320, 320), "Main Menu!")
 {
@@ -37,6 +39,11 @@ void Menu::InitButton(std::string name, Object * button, int xPos, int yPos, std
 
 void Menu::Run()
 {
+    title.AttachComponent<SpriteComponent>();
+    title.AttachComponent<TextComponent>();
+    title.GetComponent<TextComponent>()->SetComponent("Title");
+    AddObjects(&title);
+
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
 
@@ -96,15 +103,28 @@ void Menu::handlePlayerInput(sf::Vector2<int> key, bool isPressed)
         std::shared_ptr<SpriteComponent> sprite = object->GetComponent<SpriteComponent>();
         auto button = object->GetComponent<ButtonComponent>();
 
-        if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonOne")
-        {
+        if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonOne")  {
+            RunGame("Assets/data.json");
+            return;
+        }
 
-            Game game("Assets/data.json");
-            game.Run();
+        else if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonTwo") {
+            RunGame("Assets/data.json");
+            return;
+        }
 
-            m_gameObjects.clear();
-
-            mWindow.close();
+        else if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonThree") {
+            RunGame("Assets/data.json");
+            return;
         }
     }
+}
+
+void Menu::RunGame(std::string jsonName) {
+
+    Game game(jsonName);
+    game.Run();
+
+    m_gameObjects.clear();
+    mWindow.close();
 }
