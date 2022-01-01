@@ -14,8 +14,10 @@
 #include "../Components/TagComponent.h"
 #include "../Components/HealthComponent.h"
 #include "../Components/TextComponent.h"
+#include "../Components/SoundComponent.h"
 #include <fstream>
 #include <sstream>
+#include <SFML/Audio.hpp>
 
 const sf::Time Game::TimePerFrame = sf::seconds(1.f/60.f);
 
@@ -27,6 +29,9 @@ sf::Color colors[] {sf::Color::Red, sf::Color::Green, sf::Color::Yellow, sf::Col
 
 sf::Time elapsed;
 std::stringstream stream;
+
+sf::SoundBuffer buffer;
+
 
 Object enemies [maxEnemies];
 Object player;
@@ -79,6 +84,7 @@ Game::Game(std::string jsonLocation):mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_
     mWindow.setSize({static_cast<unsigned int>(SCREEN_WIDTH),static_cast<unsigned int>(SCREEN_HEIGHT)});
     InitPlayer();
 
+    buffer.loadFromFile("Assets/bonk.wav");
 }
 
 void Game::InitPlayer() {
@@ -114,10 +120,15 @@ Object Game::InitEnemy() {
     Enemy.AttachComponent<TagComponent>();
     Enemy.GetComponent<TagComponent>()->setTag("Enemy");
     Enemy.AttachComponent<CollisionComponent>();
+    Enemy.AttachComponent<SoundComponent>();
+    Enemy.GetComponent<SoundComponent>()->setBuffer(buffer);
+
     return Enemy;
 }
 
 void Game::Run() {
+
+
 
     playerHealthText.AttachComponent<TextComponent>();
     playerHealthText.GetComponent<TextComponent>()->textSetup("Health: " + std::to_string(playersHealth), {80, 10},
@@ -212,7 +223,8 @@ void Game::update(sf::Time deltaTime)
         auto physics = object->GetComponent<PhysicsComponent>();
         auto AIMovement = object->GetComponent<AIMovementComponent>();
         auto tag = object->GetComponent<TagComponent>();
-        auto coll = player.GetComponent<CollisionComponent>();
+        auto coll = object->GetComponent<CollisionComponent>();
+        auto sound = object->GetComponent<SoundComponent>();
 
         if(physics != nullptr)
             transform->updatePositionY(physics->GetGravity());
@@ -237,8 +249,14 @@ void Game::update(sf::Time deltaTime)
                 coll->borderLoop(sprite, SCREEN_WIDTH, SCREEN_HEIGHT);
             } else if (tag->getTag() == "Enemy") {
                 coll->borderBounce(sprite, SCREEN_WIDTH, SCREEN_HEIGHT, 40);
+                if (transform->getRotation() != sprite->getRotation()) {
+                    sprite->setColor(colors[rand() % 6]);
+
+                    if (sound != nullptr) {
+                        sound->playSound();
+                    }
+                }
                 transform->setRotation(sprite->getRotation());
-                sprite->setColor(colors[rand() % 6]);
             }
         }
 
