@@ -98,4 +98,8 @@ bool TransformComponent::getMovingForward() {
     return movingForward;
 }
 
+void TransformComponent::setRotation(float d) {
+    m_rotation = d;
+}
+
 

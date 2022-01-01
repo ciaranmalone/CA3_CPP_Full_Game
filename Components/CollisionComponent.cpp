@@ -6,10 +6,10 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
-void CollisionComponent::checkCollision(std::shared_ptr<SpriteComponent> playerTransform, std::shared_ptr<SpriteComponent> otherTransform) {
+bool CollisionComponent::checkCollision(std::shared_ptr<SpriteComponent> playerTransform, std::shared_ptr<SpriteComponent> otherTransform) {
 
     if(playerTransform == otherTransform) {
-        return;
+        return false;
     }
     auto playerPos = playerTransform->getSprite().getPosition();
     auto otherPos = otherTransform->getSprite().getPosition();
@@ -21,6 +21,40 @@ void CollisionComponent::checkCollision(std::shared_ptr<SpriteComponent> playerT
     float distance = std::sqrt((dx*dx) + (dy*dy));
 
     if(distance <= (playerRadius + otherRadius)) {
-        std::cout << "Collision Detected" << std::endl;
+        return true;
     }
+
+    return false;
+}
+
+void CollisionComponent::borderLoop(std::shared_ptr<SpriteComponent> sprite, int screenWidth, int screenHeight) {
+
+    if(sprite->getSprite().getPosition().x < 0)
+        sprite->setPosition({static_cast<float>(screenWidth),sprite->getSprite().getPosition().y});
+
+    else if(sprite->getSprite().getPosition().x > screenWidth)
+        sprite->setPosition({0,sprite->getSprite().getPosition().y});
+
+    if(sprite->getSprite().getPosition().y < 0)
+        sprite->setPosition({sprite->getSprite().getPosition().x,static_cast<float>(screenHeight)});
+
+    else if(sprite->getSprite().getPosition().y > screenHeight)
+        sprite->setPosition({sprite->getSprite().getPosition().x,0});
+
+}
+
+void CollisionComponent::borderBounce(std::shared_ptr<SpriteComponent> sprite, int screenWidth, int screenHeight,
+                                      int angle) {
+
+    if(sprite->getSprite().getPosition().x < 0)
+        sprite->setRotation(rand() % angle + 70); // 90 +- 20
+
+    else if(sprite->getSprite().getPosition().x > screenWidth)
+        sprite->setRotation(rand() % angle + 250); // 270 += 20
+
+    if(sprite->getSprite().getPosition().y < 0)
+        sprite->setRotation(rand() % angle + 160); // 180 -+ 20
+
+    else if(sprite->getSprite().getPosition().y > screenHeight)
+        sprite->setRotation(rand() % angle -20 ); // 0 -+ 20
 }

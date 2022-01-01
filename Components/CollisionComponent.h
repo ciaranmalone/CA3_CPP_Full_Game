@@ -13,7 +13,11 @@ class CollisionComponent: public Component {
 public:
     bool isPlayer = true;
 
-    void checkCollision(std::shared_ptr<SpriteComponent> playerTransform, std::shared_ptr<SpriteComponent> otherTransform);
+    bool checkCollision(std::shared_ptr<SpriteComponent> playerTransform, std::shared_ptr<SpriteComponent> otherTransform);
+
+    void borderLoop(std::shared_ptr<SpriteComponent> sprite, int screenWidth, int screenHeight);
+    void borderBounce(std::shared_ptr<SpriteComponent> sprite, int screenWidth, int screenHeight, int angle);
+
 };
 
 

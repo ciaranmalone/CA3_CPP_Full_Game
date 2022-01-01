@@ -16,14 +16,26 @@ const sf::Time Menu::TimePerFrame = sf::seconds(1.f/60.f);
 Object ButtonOne;
 Object ButtonTwo;
 Object ButtonThree;
-Object title;
+Object Title;
+Object Description;
 
-Menu::Menu(): mWindow(sf::VideoMode(320, 320), "Main Menu!")
+const int SCREEN_WIDTH = 320;
+const int SCREEN_HEIGHT = 320;
+
+Menu::Menu(): mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Main Menu!")
 {
-    InitButton("buttonOne",&ButtonOne, 100, 100, "Assets/spr_skeleton_idle_down.png");
-    InitButton("buttonTwo",&ButtonTwo, 200, 100, "Assets/spr_skeleton_idle_down.png");
-    InitButton("buttonThree",&ButtonThree, 300, 100, "Assets/spr_skeleton_idle_down.png");
+    InitButton("buttonOne",&ButtonOne, (SCREEN_WIDTH/2) - 100, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png");
+    InitButton("buttonTwo",&ButtonTwo, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png");
+    InitButton("buttonThree",&ButtonThree, (SCREEN_WIDTH/2) + 100, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png");
 
+    Title.AttachComponent<TextComponent>();
+    Title.GetComponent<TextComponent>()->textSetup("CA 3 GAME", {SCREEN_WIDTH / 2, 10}, sf::Color::White, 24);
+    AddObjects(&Title);
+
+    Description.AttachComponent<TextComponent>();
+    Description.GetComponent<TextComponent>()->textSetup("Choose Difficulty", {SCREEN_WIDTH / 2, SCREEN_HEIGHT - 80},
+                                                         sf::Color::Yellow, 20);
+    AddObjects(&Description);
 }
 
 void Menu::InitButton(std::string name, Object * button, int xPos, int yPos, std::string textureLocation)
@@ -39,10 +51,6 @@ void Menu::InitButton(std::string name, Object * button, int xPos, int yPos, std
 
 void Menu::Run()
 {
-    title.AttachComponent<SpriteComponent>();
-    title.AttachComponent<TextComponent>();
-    title.GetComponent<TextComponent>()->SetComponent("Title");
-    AddObjects(&title);
 
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
@@ -87,12 +95,14 @@ void Menu::update(sf::Time deltaTime)
 
 }
 
-
 void Menu::render()
 {
     mWindow.clear();
     for (auto &object: m_gameObjects) {
-        mWindow.draw(object->GetComponent<SpriteComponent>()->getSprite());
+        if (object->GetComponent<SpriteComponent>() != nullptr)
+            mWindow.draw(object->GetComponent<SpriteComponent>()->getSprite());
+        if (object->GetComponent<TextComponent>() != nullptr)
+            mWindow.draw(object->GetComponent<TextComponent>()->getText());
     }
     mWindow.display();
 }
@@ -105,16 +115,15 @@ void Menu::handlePlayerInput(sf::Vector2<int> key, bool isPressed)
 
         if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonOne")  {
             RunGame("Assets/data.json");
-            return;
         }
 
         else if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonTwo") {
             RunGame("Assets/data.json");
-            return;
         }
 
         else if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonThree") {
             RunGame("Assets/data.json");
+        } else {
             return;
         }
     }
@@ -127,4 +136,5 @@ void Menu::RunGame(std::string jsonName) {
 
     m_gameObjects.clear();
     mWindow.close();
+    return;
 }

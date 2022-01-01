@@ -25,11 +25,16 @@ public:
     void setTexture(const sf::Texture& texture);
     void setPosition(sf::Vector2f position);
     void setRotation(float position);
+    float getRotation() {
+        return getSprite().getRotation();
+    }
     void updateMovement(float thrust);
 
     sf::Sprite getSprite() {
         return m_sprite;
     }
+
+    void setColor(sf::Color color);
 
     void Draw(sf::RenderWindow window);
     bool isPlayer = false;

@@ -36,6 +36,7 @@ public:
     void updatePositionX(float x);
 
     void updateRotation(float d);
+    void setRotation(float d);;
 
     void increaseSpeed(float speed);
     void decreaseSpeed(float speed);

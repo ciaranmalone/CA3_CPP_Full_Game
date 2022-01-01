@@ -1010,14 +1010,14 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
   JSON_HEDLEY_HAS_WARNING("-Wcast-qual") || \
   JSON_HEDLEY_GCC_VERSION_CHECK(4,6,0) || \
   JSON_HEDLEY_INTEL_VERSION_CHECK(13,0,0)
-#  define JSON_HEDLEY_CONST_CAST(T, expr) (__extension__ ({ \
+#  define JSON_HEDLEY_CONST_CAST(Title, expr) (__extension__ ({ \
         JSON_HEDLEY_DIAGNOSTIC_PUSH \
         JSON_HEDLEY_DIAGNOSTIC_DISABLE_CAST_QUAL \
-        ((T) (expr)); \
+        ((Title) (expr)); \
         JSON_HEDLEY_DIAGNOSTIC_POP \
     }))
 #else
-#  define JSON_HEDLEY_CONST_CAST(T, expr) ((T) (expr))
+#  define JSON_HEDLEY_CONST_CAST(Title, expr) ((Title) (expr))
 #endif
 
 #if defined(JSON_HEDLEY_REINTERPRET_CAST)
@@ -1026,7 +1026,7 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
 #if defined(__cplusplus)
     #define JSON_HEDLEY_REINTERPRET_CAST(T, expr) (reinterpret_cast<T>(expr))
 #else
-    #define JSON_HEDLEY_REINTERPRET_CAST(T, expr) ((T) (expr))
+    #define JSON_HEDLEY_REINTERPRET_CAST(Title, expr) ((Title) (expr))
 #endif
 
 #if defined(JSON_HEDLEY_STATIC_CAST)
@@ -1035,7 +1035,7 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
 #if defined(__cplusplus)
     #define JSON_HEDLEY_STATIC_CAST(T, expr) (static_cast<T>(expr))
 #else
-    #define JSON_HEDLEY_STATIC_CAST(T, expr) ((T) (expr))
+    #define JSON_HEDLEY_STATIC_CAST(Title, expr) ((Title) (expr))
 #endif
 
 #if defined(JSON_HEDLEY_CPP_CAST)
@@ -1043,13 +1043,13 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
 #endif
 #if defined(__cplusplus)
 #  if JSON_HEDLEY_HAS_WARNING("-Wold-style-cast")
-#    define JSON_HEDLEY_CPP_CAST(T, expr) \
+#    define JSON_HEDLEY_CPP_CAST(Title, expr) \
     JSON_HEDLEY_DIAGNOSTIC_PUSH \
     _Pragma("clang diagnostic ignored \"-Wold-style-cast\"") \
-    ((T) (expr)) \
+    ((Title) (expr)) \
     JSON_HEDLEY_DIAGNOSTIC_POP
 #  elif JSON_HEDLEY_IAR_VERSION_CHECK(8,3,0)
-#    define JSON_HEDLEY_CPP_CAST(T, expr) \
+#    define JSON_HEDLEY_CPP_CAST(Title, expr) \
     JSON_HEDLEY_DIAGNOSTIC_PUSH \
     _Pragma("diag_suppress=Pe137") \
     JSON_HEDLEY_DIAGNOSTIC_POP
@@ -1057,7 +1057,7 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
 #    define JSON_HEDLEY_CPP_CAST(T, expr) ((T) (expr))
 #  endif
 #else
-#  define JSON_HEDLEY_CPP_CAST(T, expr) (expr)
+#  define JSON_HEDLEY_CPP_CAST(Title, expr) (expr)
 #endif
 
 #if defined(JSON_HEDLEY_DIAGNOSTIC_DISABLE_DEPRECATED)
@@ -2154,10 +2154,10 @@ JSON_HEDLEY_DIAGNOSTIC_POP
     #undef JSON_HEDLEY_FLAGS_CAST
 #endif
 #if JSON_HEDLEY_INTEL_VERSION_CHECK(19,0,0)
-#  define JSON_HEDLEY_FLAGS_CAST(T, expr) (__extension__ ({ \
+#  define JSON_HEDLEY_FLAGS_CAST(Title, expr) (__extension__ ({ \
         JSON_HEDLEY_DIAGNOSTIC_PUSH \
         _Pragma("warning(disable:188)") \
-        ((T) (expr)); \
+        ((Title) (expr)); \
         JSON_HEDLEY_DIAGNOSTIC_POP \
     }))
 #else
@@ -3051,8 +3051,8 @@ using std::index_sequence_for;
 #else
 
 // alias templates to reduce boilerplate
-template<bool B, typename T = void>
-using enable_if_t = typename std::enable_if<B, T>::type;
+template<bool B, typename Title = void>
+using enable_if_t = typename std::enable_if<B, Title>::type;
 
 // The following code is taken from https://github.com/abseil/abseil-cpp/blob/10cb35e459f5ecca5b2ff107635da0bfa41011b4/absl/utility/utility.h
 // which is part of Google Abseil (https://github.com/abseil/abseil-cpp), licensed under the Apache License 2.0.
@@ -3062,26 +3062,26 @@ using enable_if_t = typename std::enable_if<B, T>::type;
 // integer_sequence
 //
 // Class template representing a compile-time integer sequence. An instantiation
-// of `integer_sequence<T, Ints...>` has a sequence of integers encoded in its
+// of `integer_sequence<Title, Ints...>` has a sequence of integers encoded in its
 // type through its template arguments (which is a common need when
 // working with C++11 variadic templates). `absl::integer_sequence` is designed
 // to be a drop-in replacement for C++14's `std::integer_sequence`.
 //
 // Example:
 //
-//   template< class T, T... Ints >
-//   void user_function(integer_sequence<T, Ints...>);
+//   template< class Title, Title... Ints >
+//   void user_function(integer_sequence<Title, Ints...>);
 //
 //   int main()
 //   {
-//     // user_function's `T` will be deduced to `int` and `Ints...`
+//     // user_function's `Title` will be deduced to `int` and `Ints...`
 //     // will be deduced to `0, 1, 2, 3, 4`.
 //     user_function(make_integer_sequence<int, 5>());
 //   }
-template <typename T, T... Ints>
+template <typename Title, Title... Ints>
 struct integer_sequence
 {
-    using value_type = T;
+    using value_type = Title;
     static constexpr std::size_t size() noexcept
     {
         return sizeof...(Ints);
@@ -3103,31 +3103,31 @@ template <typename Seq, size_t SeqSize, size_t Rem>
 struct Extend;
 
 // Note that SeqSize == sizeof...(Ints). It's passed explicitly for efficiency.
-template <typename T, T... Ints, size_t SeqSize>
-struct Extend<integer_sequence<T, Ints...>, SeqSize, 0>
+template <typename Title, Title... Ints, size_t SeqSize>
+struct Extend<integer_sequence<Title, Ints...>, SeqSize, 0>
 {
-    using type = integer_sequence < T, Ints..., (Ints + SeqSize)... >;
+    using type = integer_sequence < Title, Ints..., (Ints + SeqSize)... >;
 };
 
-template <typename T, T... Ints, size_t SeqSize>
-struct Extend<integer_sequence<T, Ints...>, SeqSize, 1>
+template <typename Title, Title... Ints, size_t SeqSize>
+struct Extend<integer_sequence<Title, Ints...>, SeqSize, 1>
 {
-    using type = integer_sequence < T, Ints..., (Ints + SeqSize)..., 2 * SeqSize >;
+    using type = integer_sequence < Title, Ints..., (Ints + SeqSize)..., 2 * SeqSize >;
 };
 
-// Recursion helper for 'make_integer_sequence<T, N>'.
-// 'Gen<T, N>::type' is an alias for 'integer_sequence<T, 0, 1, ... N-1>'.
-template <typename T, size_t N>
+// Recursion helper for 'make_integer_sequence<Title, N>'.
+// 'Gen<Title, N>::type' is an alias for 'integer_sequence<Title, 0, 1, ... N-1>'.
+template <typename Title, size_t N>
 struct Gen
 {
     using type =
-        typename Extend < typename Gen < T, N / 2 >::type, N / 2, N % 2 >::type;
+        typename Extend < typename Gen < Title, N / 2 >::type, N / 2, N % 2 >::type;
 };
 
-template <typename T>
-struct Gen<T, 0>
+template <typename Title>
+struct Gen<Title, 0>
 {
-    using type = integer_sequence<T>;
+    using type = integer_sequence<Title>;
 };
 
 }  // namespace utility_internal
@@ -3139,8 +3139,8 @@ struct Gen<T, 0>
 // This template alias is equivalent to
 // `integer_sequence<int, 0, 1, ..., N-1>`, and is designed to be a drop-in
 // replacement for C++14's `std::make_integer_sequence`.
-template <typename T, T N>
-using make_integer_sequence = typename utility_internal::Gen<T, N>::type;
+template <typename Title, Title N>
+using make_integer_sequence = typename utility_internal::Gen<Title, N>::type;
 
 // make_index_sequence
 //
@@ -3370,10 +3370,10 @@ namespace detail
 //
 // Every trait in this file expects a non CV-qualified type.
 // The only exceptions are in the 'aliases for detected' section
-// (i.e. those of the form: decltype(T::member_function(std::declval<T>())))
+// (i.e. those of the form: decltype(Title::member_function(std::declval<Title>())))
 //
-// In this case, T has to be properly CV-qualified to constraint the function arguments
-// (e.g. to_json(BasicJsonType&, const T&))
+// In this case, Title has to be properly CV-qualified to constraint the function arguments
+// (e.g. to_json(BasicJsonType&, const Title&))
 
 template<typename> struct is_basic_json : std::false_type {};
 
@@ -3427,13 +3427,13 @@ using from_json_function = decltype(T::from_json(std::declval<Args>()...));
 template<typename T, typename U>
 using get_template_function = decltype(std::declval<T>().template get<U>());
 
-// trait checking if JSONSerializer<T>::from_json(json const&, udt&) exists
+// trait checking if JSONSerializer<Title>::from_json(json const&, udt&) exists
 template<typename BasicJsonType, typename T, typename = void>
 struct has_from_json : std::false_type {};
 
-// trait checking if j.get<T> is valid
+// trait checking if j.get<Title> is valid
 // use this trait instead of std::is_constructible or std::is_convertible,
-// both rely on, or make use of implicit conversions, and thus fail when T
+// both rely on, or make use of implicit conversions, and thus fail when Title
 // has several constructors/operator= (see https://github.com/nlohmann/json/issues/958)
 template <typename BasicJsonType, typename T>
 struct is_getable
@@ -3451,7 +3451,7 @@ struct has_from_json < BasicJsonType, T, enable_if_t < !is_basic_json<T>::value 
         const BasicJsonType&, T&>::value;
 };
 
-// This trait checks if JSONSerializer<T>::from_json(json const&) exists
+// This trait checks if JSONSerializer<Title>::from_json(json const&) exists
 // this overload is used for non-default-constructible user-defined-types
 template<typename BasicJsonType, typename T, typename = void>
 struct has_non_default_from_json : std::false_type {};
@@ -3466,8 +3466,8 @@ struct has_non_default_from_json < BasicJsonType, T, enable_if_t < !is_basic_jso
         const BasicJsonType&>::value;
 };
 
-// This trait checks if BasicJsonType::json_serializer<T>::to_json exists
-// Do not evaluate the trait when T is a basic_json type, to avoid template instantiation infinite recursion.
+// This trait checks if BasicJsonType::json_serializer<Title>::to_json exists
+// Do not evaluate the trait when Title is a basic_json type, to avoid template instantiation infinite recursion.
 template<typename BasicJsonType, typename T, typename = void>
 struct has_to_json : std::false_type {};
 
@@ -10539,7 +10539,7 @@ class binary_reader
             }
         }
 
-        // step 2: convert array into number of type T and return
+        // step 2: convert array into number of type Title and return
         std::memcpy(&result, vec.data(), sizeof(NumberType));
         return true;
     }

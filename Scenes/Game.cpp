@@ -11,18 +11,32 @@
 #include "../Json/json.hpp"
 #include "../Components/AIMovementComponent.h"
 #include "../Components/CollisionComponent.h"
+#include "../Components/TagComponent.h"
+#include "../Components/HealthComponent.h"
+#include "../Components/TextComponent.h"
 #include <fstream>
+#include <sstream>
 
 const sf::Time Game::TimePerFrame = sf::seconds(1.f/60.f);
 
-float enemyTimeSpawner = 1000.0f;
+float enemyTimeSpawner = 100.0f;
+const int maxEnemies = 50;
+int numOfEnemies=0;
 
-std::vector<Object> Enemies;
+sf::Color colors[] {sf::Color::Red, sf::Color::Green, sf::Color::Yellow, sf::Color::Blue, sf::Color::Cyan, sf::Color::Magenta, sf::Color::White};
+
+sf::Time elapsed;
+std::stringstream stream;
+
+Object enemies [maxEnemies];
 Object player;
+Object playerHealthText;
+Object playerTimeText;
+
+int playersHealth;
+
 int SCREEN_WIDTH = 640;
 int SCREEN_HEIGHT = 640;
-
-int numberOfEnemies = 5;
 
 using nlohmann::json;
 
@@ -61,7 +75,6 @@ Game::Game(std::string jsonLocation):mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_
     auto gameData = j.get<data::GameData>();
     SCREEN_WIDTH = gameData.screenWidth;
     SCREEN_HEIGHT =gameData.ScreenHeight;
-    numberOfEnemies = gameData.numOfEnemies;
 
     mWindow.setSize({static_cast<unsigned int>(SCREEN_WIDTH),static_cast<unsigned int>(SCREEN_HEIGHT)});
     InitPlayer();
@@ -79,6 +92,12 @@ void Game::InitPlayer() {
     player.GetComponent<TransformComponent>()->setPosition({40, 50});
     player.AttachComponent<CollisionComponent>();
     player.GetComponent<SpriteComponent>()->isPlayer = true;
+    player.AttachComponent<TagComponent>();
+    player.GetComponent<TagComponent>()->setTag("Player");
+    player.AttachComponent<HealthComponent>();
+    player.GetComponent<HealthComponent>()->SetHealth(100);
+    playersHealth = player.GetComponent<HealthComponent>()->getHealth();
+
     AddObjects(&player);
 };
 
@@ -92,18 +111,27 @@ Object Game::InitEnemy() {
     Enemy.GetComponent<TransformComponent>()->setPosition({40, 50});
     Enemy.GetComponent<TransformComponent>()->setThrust(5);
     Enemy.GetComponent<TransformComponent>()->setMovingForward(true);
+    Enemy.AttachComponent<TagComponent>();
+    Enemy.GetComponent<TagComponent>()->setTag("Enemy");
+    Enemy.AttachComponent<CollisionComponent>();
     return Enemy;
 }
 
 void Game::Run() {
 
-    auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
+    playerHealthText.AttachComponent<TextComponent>();
+    playerHealthText.GetComponent<TextComponent>()->textSetup("Health: " + std::to_string(playersHealth), {80, 10},
+                                                              sf::Color::White, 24);
+    AddObjects(&playerHealthText);
 
-    Object enemies [numberOfEnemies];
-    for (int i = 0; i < numberOfEnemies; ++i) {
-        enemies[i] = Game::InitEnemy();
-        AddObjects(&enemies[i]);
-    }
+    playerTimeText.AttachComponent<TextComponent>();
+    playerTimeText.GetComponent<TextComponent>()->textSetup(
+            "Time: " + std::to_string(roundf(elapsed.asSeconds() * 100) / 100),
+            {100, static_cast<float>(SCREEN_HEIGHT - 50)}, sf::Color::Yellow, 24);
+
+    AddObjects(&playerTimeText);
+
+    auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
 
     Object boss;
     boss.AttachComponent<SpriteComponent>();
@@ -114,11 +142,17 @@ void Game::Run() {
     AddObjects(&boss);
 
     sf::Clock clock;
+    sf::Clock clockCountUp;
+
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
+
+    sf::Time milli = sf::milliseconds(10);
 
     while(mWindow.isOpen())
     {
+        elapsed = clockCountUp.getElapsedTime();
         timeSinceLastUpdate += clock.restart();
+
         while(timeSinceLastUpdate > TimePerFrame)
         {
             timeSinceLastUpdate -= TimePerFrame;
@@ -133,6 +167,7 @@ void Game::Run() {
 void Game::processEvents() {
     sf::Event event{};
 
+
     while(mWindow.pollEvent(event))
     {
         switch (event.type)
@@ -146,11 +181,27 @@ void Game::processEvents() {
         break;
     }
 
-//    if(enemyTimeSpawner >= 0) {
+    if(enemyTimeSpawner <= 0) {
+        enemyTimeSpawner = 100.0f;
 //
-//    } else {
-//        enemyTimeSpawner += 1;
-//    }
+        int sizeOfArr = sizeof(enemies)/sizeof(enemies[0]);
+        if (numOfEnemies >= maxEnemies) {
+            return;
+        }
+
+        enemies[numOfEnemies] = Game::InitEnemy();
+        numOfEnemies += 1;
+        AddObjects(&enemies[numOfEnemies]);
+
+    } else {
+        enemyTimeSpawner -= 1;
+    }
+
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << elapsed.asSeconds();
+    std::string myString = ss.str();
+
+    playerTimeText.GetComponent<TextComponent>()->SetText("Time: " + myString);
 }
 
 void Game::update(sf::Time deltaTime)
@@ -160,6 +211,8 @@ void Game::update(sf::Time deltaTime)
         auto transform = object->GetComponent<TransformComponent>();
         auto physics = object->GetComponent<PhysicsComponent>();
         auto AIMovement = object->GetComponent<AIMovementComponent>();
+        auto tag = object->GetComponent<TagComponent>();
+        auto coll = player.GetComponent<CollisionComponent>();
 
         if(physics != nullptr)
             transform->updatePositionY(physics->GetGravity());
@@ -179,21 +232,23 @@ void Game::update(sf::Time deltaTime)
             sprite->setPosition(transform->getPosition());
         }
 
-        if(sprite->getSprite().getPosition().x < 0)
-            sprite->setPosition({static_cast<float>(SCREEN_WIDTH),sprite->getSprite().getPosition().y});
-
-        else if(sprite->getSprite().getPosition().x > SCREEN_WIDTH)
-            sprite->setPosition({0,sprite->getSprite().getPosition().y});
-
-        if(sprite->getSprite().getPosition().y < 0)
-            sprite->setPosition({sprite->getSprite().getPosition().x,static_cast<float>(SCREEN_HEIGHT)});
-
-        else if(sprite->getSprite().getPosition().y > SCREEN_HEIGHT)
-            sprite->setPosition({sprite->getSprite().getPosition().x,0});
+        if ( tag!= nullptr and coll != nullptr) {
+            if(tag->getTag() == "Player") {
+                coll->borderLoop(sprite, SCREEN_WIDTH, SCREEN_HEIGHT);
+            } else if (tag->getTag() == "Enemy") {
+                coll->borderBounce(sprite, SCREEN_WIDTH, SCREEN_HEIGHT, 40);
+                transform->setRotation(sprite->getRotation());
+                sprite->setColor(colors[rand() % 6]);
+            }
+        }
 
         if (AIMovement != nullptr) {
             sprite->updateMovement(transform->getThrust());
         }
+    }
+
+    if( playersHealth <= 0 ) {
+        std::cout << " -=Death=-" << std::endl;
     }
 }
 
@@ -203,17 +258,25 @@ void Game::render()
     mWindow.draw(player.GetComponent<SpriteComponent>()->getSprite());
 
     for (auto &object: m_gameObjects) {
-        mWindow.draw(object->GetComponent<SpriteComponent>()->getSprite());
+        if (object->GetComponent<SpriteComponent>() != nullptr)
+            mWindow.draw(object->GetComponent<SpriteComponent>()->getSprite());
+        if (object->GetComponent<TextComponent>() != nullptr)
+            mWindow.draw(object->GetComponent<TextComponent>()->getText());
     }
     mWindow.display();
 }
 
 void Game::handlePlayerInput()
 {
-    auto physics = player.GetComponent<PhysicsComponent>();
     auto playerTransform = player.GetComponent<TransformComponent>();
     auto playerInput = player.GetComponent<InputComponent>();
     auto playerColl = player.GetComponent<CollisionComponent>();
+    auto tag = player.GetComponent<TagComponent>();
+
+    if(tag == nullptr or tag->getTag() != "Player") {
+        return;
+    }
+
     playerTransform->setMovingForward(false);
 
     if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_LEFT))
@@ -233,11 +296,12 @@ void Game::handlePlayerInput()
         auto sprite = object->GetComponent<SpriteComponent>();
 
         if (sprite != nullptr) {
-            playerColl->checkCollision(playerSprite, sprite);
+            if (playerColl->checkCollision(playerSprite, sprite)) {
+
+                player.GetComponent<HealthComponent>()->decreaseHealth(1);
+                playersHealth = player.GetComponent<HealthComponent>()->getHealth();
+                playerHealthText.GetComponent<TextComponent>()->SetText("Health: " + std::to_string(playersHealth));
+            }
         }
     }
-}
-
-void Game::LoadData() {
-
 }

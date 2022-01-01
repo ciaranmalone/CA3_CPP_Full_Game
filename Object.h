@@ -54,7 +54,7 @@ public:
         Gets our component
      */
     template <typename T>
-    std::shared_ptr<T> GetComponent()//returning effectively T*
+    std::shared_ptr<T> GetComponent()//returning effectively Title*
     {
         // Check that we have a component of this type.
         for (std::shared_ptr<Component> exisitingComponent : m_components)

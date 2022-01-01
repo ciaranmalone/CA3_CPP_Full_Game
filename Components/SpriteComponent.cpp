@@ -61,3 +61,7 @@ void SpriteComponent::Draw(sf::RenderWindow window) {
 void SpriteComponent::updateMovement(float thrust){
     m_sprite.move(thrust * sin(m_sprite.getRotation()*3.14159265/180), thrust * -cos(m_sprite.getRotation()*3.14159265/180));
 }
+
+void SpriteComponent::setColor(sf::Color color) {
+    m_sprite.setColor(color);
+}
