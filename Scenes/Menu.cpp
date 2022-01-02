@@ -9,6 +9,22 @@
 #include "../Components/ButtonComponent.h"
 #include "../Components/TextComponent.h"
 #include "../Components/TransformComponent.h"
+#include <fstream>
+#include "../Json/json.hpp"
+
+using nlohmann::json;
+
+    struct GameData {
+        float bestTime;
+    };
+
+    void to_json(json& j, const GameData& g) {
+        j = json{{"bestTime", g.bestTime}};
+    }
+
+    void from_json(const json& j, GameData& g) {
+        j.at("bestTime").get_to(g.bestTime);
+    }
 
 
 const sf::Time Menu::TimePerFrame = sf::seconds(1.f/60.f);
@@ -18,15 +34,19 @@ Object ButtonTwo;
 Object ButtonThree;
 Object Title;
 Object Description;
+Object ScoreLevelOne;
+Object ScoreLevelTwo;
+Object ScoreLevelThree;
+
 
 const int SCREEN_WIDTH = 320;
 const int SCREEN_HEIGHT = 320;
 
 Menu::Menu(): mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Main Menu!")
 {
-    InitButton("buttonOne",&ButtonOne, (SCREEN_WIDTH/2) - 100, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png");
-    InitButton("buttonTwo",&ButtonTwo, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png");
-    InitButton("buttonThree",&ButtonThree, (SCREEN_WIDTH/2) + 100, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png");
+    InitButton("buttonOne",&ButtonOne, (SCREEN_WIDTH/2) - 100, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png", sf::Color::White);
+    InitButton("buttonTwo",&ButtonTwo, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png",sf::Color::Yellow);
+    InitButton("buttonThree",&ButtonThree, (SCREEN_WIDTH/2) + 100, SCREEN_HEIGHT/2, "Assets/spr_skeleton_idle_down.png",sf::Color::Red);
 
     Title.AttachComponent<TextComponent>();
     Title.GetComponent<TextComponent>()->textSetup("CA 3 GAME", {SCREEN_WIDTH / 2, 10}, sf::Color::White, 24);
@@ -36,14 +56,37 @@ Menu::Menu(): mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Main Menu!")
     Description.GetComponent<TextComponent>()->textSetup("Choose Difficulty", {SCREEN_WIDTH / 2, SCREEN_HEIGHT - 80},
                                                          sf::Color::Yellow, 20);
     AddObjects(&Description);
+
+    BestTime(&ScoreLevelOne, "Assets/dataLevel1.json", (SCREEN_WIDTH/2) - 100);
+    BestTime(&ScoreLevelTwo, "Assets/dataLevel2.json", (SCREEN_WIDTH/2));
+    BestTime(&ScoreLevelThree, "Assets/dataLevel3.json", (SCREEN_WIDTH/2) + 100);
+
 }
 
-void Menu::InitButton(std::string name, Object * button, int xPos, int yPos, std::string textureLocation)
+void Menu::BestTime(Object *obj, std::string local, float xPos) {
+    std::ifstream file (local);
+    json j;
+    file >> j;
+    std::cout << j << std::endl;
+    GameData gameData = j.get<GameData>();
+
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << gameData.bestTime;
+    std::string myString = ss.str();
+
+    obj->AttachComponent<TextComponent>();xPos;
+    obj->GetComponent<TextComponent>()->textSetup(myString, {xPos, (SCREEN_HEIGHT/2)-50},sf::Color::Yellow, 16);
+
+    AddObjects(obj);
+}
+
+void Menu::InitButton(std::string name, Object * button, int xPos, int yPos, std::string textureLocation, sf::Color color)
 {
     auto tempTextureID = TextureManager::AddTexture(textureLocation);
     button->AttachComponent<SpriteComponent>();
     button->GetComponent<SpriteComponent>()->setTexture(TextureManager::GetTexture(tempTextureID));
     button->GetComponent<SpriteComponent>()->setPosition(sf::Vector2f (xPos,yPos));
+    button->GetComponent<SpriteComponent>()->setColor(color);
     button->AttachComponent<ButtonComponent>();
     button->GetComponent<ButtonComponent>()->setButtonName(name);
     AddObjects(button);
@@ -110,23 +153,26 @@ void Menu::render()
 void Menu::handlePlayerInput(sf::Vector2<int> key, bool isPressed)
 {
     for (auto &object: m_gameObjects) {
-        std::shared_ptr<SpriteComponent> sprite = object->GetComponent<SpriteComponent>();
-        auto button = object->GetComponent<ButtonComponent>();
 
-        if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonOne")  {
-            RunGame("Assets/data.json");
-        }
+        if (object->GetComponent<SpriteComponent>() != nullptr and object->GetComponent<ButtonComponent>() != nullptr) {
+            std::shared_ptr<SpriteComponent> sprite = object->GetComponent<SpriteComponent>();
+            auto button = object->GetComponent<ButtonComponent>();
 
-        else if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonTwo") {
-            RunGame("Assets/data.json");
-        }
+            if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonOne")  {
+                RunGame("Assets/dataLevel1.json");
+            }
 
-        else if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonThree") {
-            RunGame("Assets/data.json");
-        } else {
-            return;
+            if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonTwo") {
+                printf("wat");
+                RunGame("Assets/dataLevel2.json");
+            }
+
+            if(button->checkButtonClick(sprite, sf::Mouse::getPosition(mWindow)) == "buttonThree") {
+                RunGame("Assets/dataLevel3.json");
+            }
         }
     }
+
 }
 
 void Menu::RunGame(std::string jsonName) {

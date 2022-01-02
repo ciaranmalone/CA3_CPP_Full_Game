@@ -6,8 +6,8 @@
 #define CA2_SOUNDCOMPONENT_H
 #include "Component.h"
 #include <memory>
-#include <SFML/Audio/Sound.hpp>
-#include <SFML/Audio/SoundBuffer.hpp>
+#include <SFML/Audio.hpp>
+#include <iostream>
 
 class SoundComponent: public Component {
 
@@ -20,6 +20,7 @@ public:
     }
 
     void playSound(){
+        std::cout << "Sound played" << std::endl;
         sound.play();
     }
 

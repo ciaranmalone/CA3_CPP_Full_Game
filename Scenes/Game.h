@@ -10,7 +10,7 @@
 class Game {
 public:
     explicit Game(std::string levelJson);
-    void LoadData();
+    void LoadData(std::string jsonLocation);
     void Run();
     void AddObjects(Object* obj)
     {
@@ -32,8 +32,7 @@ private:
     Object InitEnemy();
     void InitEnemies(int num);
 
-
-
+    bool gameOver;
 };
 
 

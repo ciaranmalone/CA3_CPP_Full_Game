@@ -18,12 +18,63 @@
 #include <fstream>
 #include <sstream>
 #include <SFML/Audio.hpp>
+#include <iostream>
+
+using nlohmann::json;
+
+namespace dataJson {
+    struct GameData {
+        int screenWidth;
+        int ScreenHeight;
+        float playerSpeed;
+        float maxSpeed;
+        int numOfEnemies;
+        float bestTime;
+        float enemySpeed;
+        std::string enemySprite;
+        std::string playerSprite;
+        float spawnTime;
+        int playerHealth;
+    };
+
+    void to_json(json& j, const GameData& g) {
+        j = json{ {"screenWidth", g.screenWidth},
+                  {"ScreenHeight", g.ScreenHeight},
+                  {"playerSpeed", g.playerSpeed},
+                  {"maxSpeed", g.maxSpeed},
+                  {"numberOfEnemies", g.numOfEnemies},
+                  {"bestTime", g.bestTime},
+                  {"enemySpeed", g.enemySpeed},
+                  {"enemySprite", g.enemySprite},
+                  {"playerSprite", g.playerSprite},
+                  {"spawnTime", g.spawnTime},
+                  {"playerHealth",g.playerHealth}
+        };
+    }
+
+    void from_json(const json& j, GameData& g) {
+        j.at("screenWidth").get_to(g.screenWidth);
+        j.at("ScreenHeight").get_to(g.ScreenHeight);
+        j.at("playerSpeed").get_to(g.playerSpeed);
+        j.at("maxSpeed").get_to(g.maxSpeed);
+        j.at("numberOfEnemies").get_to(g.numOfEnemies);
+        j.at("bestTime").get_to(g.bestTime);
+        j.at("enemySpeed").get_to(g.enemySpeed);
+        j.at("enemySprite").get_to(g.enemySprite);
+        j.at("playerSprite").get_to(g.playerSprite);
+        j.at("spawnTime").get_to(g.spawnTime);
+        j.at("playerHealth").get_to(g.playerHealth);
+    }
+}
+
+dataJson::GameData gameData;
 
 const sf::Time Game::TimePerFrame = sf::seconds(1.f/60.f);
 
 float enemyTimeSpawner = 100.0f;
 const int maxEnemies = 50;
 int numOfEnemies=0;
+bool gameOvered = false;
 
 sf::Color colors[] {sf::Color::Red, sf::Color::Green, sf::Color::Yellow, sf::Color::Blue, sf::Color::Cyan, sf::Color::Magenta, sf::Color::White};
 
@@ -32,64 +83,52 @@ std::stringstream stream;
 
 sf::SoundBuffer buffer;
 
-
-Object enemies [maxEnemies];
+Object enemies [maxEnemies] ={};
 Object player;
 Object playerHealthText;
 Object playerTimeText;
+Object gameOverText;
 
 int playersHealth;
 
 int SCREEN_WIDTH = 640;
 int SCREEN_HEIGHT = 640;
 
-using nlohmann::json;
-
-namespace data {
-    struct GameData {
-        int screenWidth;
-        int ScreenHeight;
-        float playerSpeed;
-        float maxSpeed;
-        int numOfEnemies;
-    };
-
-    void to_json(json& j, const GameData& g) {
-        j = json{ {"screenWidth", g.screenWidth},
-                  {"ScreenHeight", g.ScreenHeight},
-                  {"playerSpeed", g.playerSpeed},
-                  {"maxSpeed", g.maxSpeed},
-                {"numberOfEnemies", g.numOfEnemies}};
-        }
-
-    void from_json(const json& j, GameData& g) {
-        j.at("screenWidth").get_to(g.screenWidth);
-        j.at("ScreenHeight").get_to(g.ScreenHeight);
-        j.at("playerSpeed").get_to(g.playerSpeed);
-        j.at("maxSpeed").get_to(g.maxSpeed);
-        j.at("numberOfEnemies").get_to(g.numOfEnemies);
-    }
-}
+std::string JsonLocation;
 
 Game::Game(std::string jsonLocation):mWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "GAME!")
 {
+    JsonLocation = jsonLocation;
+    LoadData(jsonLocation);
+
+    //Sound
+    buffer.loadFromFile("Assets/bonk.wav");
+    sf::SoundBuffer buffer2;
+    if (!buffer2.loadFromFile("Assets/bonk.wav"))
+        return;
+
+    sf::Sound sound;
+    sound.setBuffer(buffer2);
+    sound.play();
+}
+
+void Game::LoadData(std::string jsonLocation) {
+    //JSON
     std::ifstream file (jsonLocation);
     json j;
     file >> j;
     std::cout << j << std::endl;
-    auto gameData = j.get<data::GameData>();
+    gameData = j.get<dataJson::GameData>();
     SCREEN_WIDTH = gameData.screenWidth;
     SCREEN_HEIGHT =gameData.ScreenHeight;
+    enemyTimeSpawner = gameData.spawnTime;
 
     mWindow.setSize({static_cast<unsigned int>(SCREEN_WIDTH),static_cast<unsigned int>(SCREEN_HEIGHT)});
-    InitPlayer();
-
-    buffer.loadFromFile("Assets/bonk.wav");
 }
 
 void Game::InitPlayer() {
     extern Object player;
-    auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
+    auto tempTextureID = TextureManager::AddTexture(gameData.playerSprite);
     player.AttachComponent<SpriteComponent>();
     player.AttachComponent<InputComponent>();
     player.GetComponent<SpriteComponent>()->setTexture(TextureManager::GetTexture(tempTextureID));
@@ -101,7 +140,7 @@ void Game::InitPlayer() {
     player.AttachComponent<TagComponent>();
     player.GetComponent<TagComponent>()->setTag("Player");
     player.AttachComponent<HealthComponent>();
-    player.GetComponent<HealthComponent>()->SetHealth(100);
+    player.GetComponent<HealthComponent>()->SetHealth(gameData.playerHealth);
     playersHealth = player.GetComponent<HealthComponent>()->getHealth();
 
     AddObjects(&player);
@@ -109,26 +148,26 @@ void Game::InitPlayer() {
 
 Object Game::InitEnemy() {
     Object Enemy;
-    auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
+    auto tempTextureID = TextureManager::AddTexture(gameData.enemySprite);
     Enemy.AttachComponent<SpriteComponent>();
     Enemy.GetComponent<SpriteComponent>()->setTexture(TextureManager::GetTexture(tempTextureID));
     Enemy.GetComponent<SpriteComponent>()->setPosition(sf::Vector2f (rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT));
     Enemy.AttachComponent<TransformComponent>(sf::Vector2f (100, 100));
     Enemy.GetComponent<TransformComponent>()->setPosition({40, 50});
-    Enemy.GetComponent<TransformComponent>()->setThrust(5);
+    Enemy.GetComponent<TransformComponent>()->setThrust(gameData.enemySpeed);
     Enemy.GetComponent<TransformComponent>()->setMovingForward(true);
     Enemy.AttachComponent<TagComponent>();
     Enemy.GetComponent<TagComponent>()->setTag("Enemy");
     Enemy.AttachComponent<CollisionComponent>();
     Enemy.AttachComponent<SoundComponent>();
     Enemy.GetComponent<SoundComponent>()->setBuffer(buffer);
-
+    Enemy.GetComponent<SoundComponent>()->playSound();
     return Enemy;
 }
 
 void Game::Run() {
 
-
+    InitPlayer();
 
     playerHealthText.AttachComponent<TextComponent>();
     playerHealthText.GetComponent<TextComponent>()->textSetup("Health: " + std::to_string(playersHealth), {80, 10},
@@ -142,21 +181,10 @@ void Game::Run() {
 
     AddObjects(&playerTimeText);
 
-    auto tempTextureID = TextureManager::AddTexture("Assets/spr_skeleton_idle_down.png");
-
-    Object boss;
-    boss.AttachComponent<SpriteComponent>();
-    boss.AttachComponent<TransformComponent>(sf::Vector2f (100, 100));
-    boss.GetComponent<SpriteComponent>()->setTexture(TextureManager::GetTexture(tempTextureID));
-    boss.GetComponent<SpriteComponent>()->setPosition(sf::Vector2f (rand() % SCREEN_WIDTH, rand() % SCREEN_HEIGHT));
-
-    AddObjects(&boss);
-
     sf::Clock clock;
     sf::Clock clockCountUp;
 
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
-
     sf::Time milli = sf::milliseconds(10);
 
     while(mWindow.isOpen())
@@ -178,24 +206,15 @@ void Game::Run() {
 void Game::processEvents() {
     sf::Event event{};
 
-
     while(mWindow.pollEvent(event))
     {
-        switch (event.type)
-        {
-            case sf::Event::Closed:
-                mWindow.close();
-                break;
-            default:
-                break;
-        }
+        if (event.type == sf::Event::Closed)
+            mWindow.close();
         break;
     }
 
     if(enemyTimeSpawner <= 0) {
-        enemyTimeSpawner = 100.0f;
-//
-        int sizeOfArr = sizeof(enemies)/sizeof(enemies[0]);
+        enemyTimeSpawner = gameData.spawnTime;
         if (numOfEnemies >= maxEnemies) {
             return;
         }
@@ -204,6 +223,7 @@ void Game::processEvents() {
         numOfEnemies += 1;
         AddObjects(&enemies[numOfEnemies]);
 
+        int n = sizeof(enemies)/sizeof(enemies[0]);
     } else {
         enemyTimeSpawner -= 1;
     }
@@ -211,12 +231,13 @@ void Game::processEvents() {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << elapsed.asSeconds();
     std::string myString = ss.str();
-
-    playerTimeText.GetComponent<TextComponent>()->SetText("Time: " + myString);
+    if (!gameOver)
+        playerTimeText.GetComponent<TextComponent>()->SetText("Time: " + myString);
 }
 
 void Game::update(sf::Time deltaTime)
 {
+
     for (auto &object: m_gameObjects) {
         auto sprite = object->GetComponent<SpriteComponent>();
         auto transform = object->GetComponent<TransformComponent>();
@@ -265,21 +286,45 @@ void Game::update(sf::Time deltaTime)
         }
     }
 
-    if( playersHealth <= 0 ) {
-        std::cout << " -=Death=-" << std::endl;
+    if( playersHealth <= 0 && !gameOvered) {
+        gameOvered = true;
+        gameOver = true;
+
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << elapsed.asSeconds();
+        std::string myString = ss.str();
+
+        gameOverText.AttachComponent<TextComponent>();
+        gameOverText.GetComponent<TextComponent>()->textSetup(
+                "Game Over\n Time: " + myString +"s", {static_cast<float>(SCREEN_WIDTH/2), static_cast<float>(SCREEN_HEIGHT/2)}, sf::Color::Yellow, 64);
+
+        if(elapsed.asSeconds() > gameData.bestTime) {
+            gameData.bestTime = elapsed.asSeconds();
+
+            json j2 = gameData;
+            std::ofstream outJson(JsonLocation);
+            outJson << j2 << std::endl;
+        }
+        AddObjects(&gameOverText);
     }
 }
 
 void Game::render()
 {
     mWindow.clear();
-    mWindow.draw(player.GetComponent<SpriteComponent>()->getSprite());
+    //mWindow.draw(player.GetComponent<SpriteComponent>()->getSprite());
 
     for (auto &object: m_gameObjects) {
-        if (object->GetComponent<SpriteComponent>() != nullptr)
+        if (object->GetComponent<SpriteComponent>() != nullptr and !gameOvered) {
             mWindow.draw(object->GetComponent<SpriteComponent>()->getSprite());
-        if (object->GetComponent<TextComponent>() != nullptr)
+        } else if (object->GetComponent<SpriteComponent>() != nullptr and object != &player) {
+            mWindow.draw(object->GetComponent<SpriteComponent>()->getSprite());
+        }
+        if (object->GetComponent<TextComponent>() != nullptr and !gameOvered) {
             mWindow.draw(object->GetComponent<TextComponent>()->getText());
+        } else if (object->GetComponent<TextComponent>()){
+            mWindow.draw(gameOverText.GetComponent<TextComponent>()->getText());
+        }
     }
     mWindow.display();
 }
@@ -298,14 +343,18 @@ void Game::handlePlayerInput()
     playerTransform->setMovingForward(false);
 
     if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_LEFT))
-        playerTransform->updateRotation(-5);
+        playerTransform->updateRotation(-gameData.maxSpeed);
 
     else if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_RIGHT))
-        playerTransform->updateRotation(5);
+        playerTransform->updateRotation(gameData.maxSpeed);
 
     if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_UP)){
         playerTransform->setMovingForward(true);
-        playerTransform->increaseSpeed(.2f);
+        playerTransform->increaseSpeed(gameData.playerSpeed);
+
+    } else if(playerInput->IsKeyPressed(InputComponent::KEY::KEY_DOWN)) {
+        playerTransform->setMovingForward(true);
+        playerTransform->decreaseSpeed(gameData.playerSpeed);
     }
 
     // Coll detection
