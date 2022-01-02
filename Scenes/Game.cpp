@@ -123,6 +123,7 @@ void Game::LoadData(std::string jsonLocation) {
     SCREEN_HEIGHT =gameData.ScreenHeight;
     enemyTimeSpawner = gameData.spawnTime;
 
+    mWindow.create(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "GAME!");
     mWindow.setSize({static_cast<unsigned int>(SCREEN_WIDTH),static_cast<unsigned int>(SCREEN_HEIGHT)});
 }
 
